@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      # Optional. Without these secrets the workflow still publishes an unsigned DMG.
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches VERSION
+        run: |
+          [ "${GITHUB_REF_NAME#v}" = "$(tr -d '[:space:]' < VERSION)" ] || { echo "Tag ${GITHUB_REF_NAME} does not match VERSION"; exit 1; }
+
+      - name: Test
+        run: swift test
+
+      - name: Import signing certificate
+        if: env.MACOS_CERTIFICATE != '' && env.SIGN_IDENTITY != ''
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+          rm "$RUNNER_TEMP/certificate.p12"
+
+      - name: Build signed and notarized DMG
+        if: env.MACOS_CERTIFICATE != '' && env.SIGN_IDENTITY != '' && env.APPLE_ID != ''
+        run: ./scripts/release.sh
+
+      - name: Build unsigned DMG
+        if: env.MACOS_CERTIFICATE == '' || env.SIGN_IDENTITY == '' || env.APPLE_ID == ''
+        run: |
+          SIGN_IDENTITY=- ./scripts/build-app.sh
+          ./scripts/make-dmg.sh
+
+      - name: Checksum
+        run: shasum -a 256 dist/*.dmg | tee "dist/SHA256SUMS.txt"
+
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "$APPLE_ID" ] && [ -n "$MACOS_CERTIFICATE" ] && [ -n "$SIGN_IDENTITY" ]; then
+            NOTES="Signed and notarized."
+          else
+            NOTES="Unsigned, not notarized. On first launch macOS blocks it: open System Settings > Privacy & Security and click Open Anyway, or run: xattr -dr com.apple.quarantine /Applications/PortKill.app"
+          fi
+          gh release create "$GITHUB_REF_NAME" dist/*.dmg dist/SHA256SUMS.txt \
+            --draft --title "PortKill ${GITHUB_REF_NAME#v}" --notes "$NOTES"

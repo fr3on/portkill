@@ -1,0 +1,40 @@
+name: Bug report
+description: Something is wrong or missing in PortKill
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `python3 -m http.server 8123`
+        2. Open PortKill
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: PortKill version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: "macOS 15.2, Apple M1 Pro"
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or output
+      description: For a wrong or missing port, paste the output of `lsof -nP -iTCP -sTCP:LISTEN` (remove anything private).

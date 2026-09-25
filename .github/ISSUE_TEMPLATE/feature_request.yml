@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an idea for PortKill
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+  - type: markdown
+    attributes:
+      value: PortKill aims to stay small, offline and safe. Ideas that add network access, background polling or mass-kill actions are unlikely to be accepted.
