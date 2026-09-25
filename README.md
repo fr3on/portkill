@@ -104,25 +104,6 @@ docs/images/      README screenshots
 
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first, and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Releasing
-
-1. Update `VERSION` and `CHANGELOG.md`.
-2. Push a matching tag: `git tag v0.1.0 && git push origin v0.1.0`.
-3. The [Release workflow](.github/workflows/release.yml) tests, builds a universal app and attaches a `.dmg` and checksum to a **draft** GitHub release. Publish it when you're happy.
-
-Without any secrets the DMG is unsigned, which is the default. If you later join the Apple Developer Program, add these repository secrets and the same workflow signs and notarizes the DMG:
-
-| Secret | Value |
-| --- | --- |
-| `MACOS_CERTIFICATE` | Base64 of your "Developer ID Application" `.p12` |
-| `MACOS_CERTIFICATE_PASSWORD` | Password of that `.p12` |
-| `MACOS_SIGN_IDENTITY` | e.g. `Developer ID Application: Your Name (TEAMID)` |
-| `APPLE_ID` | Apple ID used for notarization |
-| `APPLE_TEAM_ID` | Your Apple developer team ID |
-| `APPLE_APP_PASSWORD` | An app-specific password for that Apple ID |
-
-To release from your own machine instead, see the header of [scripts/release.sh](scripts/release.sh).
-
 ## License
 
 [MIT](LICENSE)
