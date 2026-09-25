@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-25
+
 ### Added
 - Menu bar popover listing every process listening on a local TCP port, with PID, uptime and owning project.
 - Project detection from the process working directory (`.git`, `package.json`, `Package.swift`, `pyproject.toml`, `Cargo.toml`).
