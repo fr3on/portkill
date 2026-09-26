@@ -29,9 +29,9 @@ swift test -Xswiftc -plugin-path -Xswiftc /Library/Developer/CommandLineTools/us
 ## Ground rules
 
 - **Safety first.** Kill actions go through `KillPolicy` and `ProcessKiller`. Do not add a way around them, and do not add "kill all".
-- **Offline and private.** No analytics, telemetry or network calls.
+- **Offline and private.** No analytics or telemetry. The only network call is the manual "Check for Updates…" request; do not add automatic, background or on-launch network calls.
 - **No new dependencies** without opening an issue first.
-- **Idle when closed.** Nothing may poll while the popover is hidden.
+- **Idle when closed.** Nothing may poll while the popover is hidden, except the opt-in menu bar port count.
 - **Tests for core changes.** Any parser or policy change needs a test. For parser changes, add a captured `lsof` fixture.
 - No force unwraps or `try!`. Keep files small, one main type per file.
 

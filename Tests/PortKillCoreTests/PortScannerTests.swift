@@ -22,11 +22,19 @@ struct PortScannerTests {
         #expect(abs(Date().timeIntervalSince(started) - 60) < 5)
     }
 
+    @Test func attachesMemoryFromPS() async throws {
+        let scanner = PortScanner(runner: StubRunner(lsof: "p10\ncnode\nu501\nLme\nn*:3000\n", ps: "10 01:00 189440\n"))
+        let ports = try await scanner.scan()
+        #expect(ports[0].memoryBytes == 189_440 * 1024)
+        #expect(ports[0].startedAt != nil)
+    }
+
     @Test func psFailureOnlyDropsTheUptime() async throws {
         let scanner = PortScanner(runner: StubRunner(lsof: "p10\ncnode\nu501\nLme\nn*:3000\n", ps: nil))
         let ports = try await scanner.scan()
         #expect(ports.map(\.port) == [3000])
         #expect(ports[0].startedAt == nil)
+        #expect(ports[0].memoryBytes == nil)
     }
 
     @Test func realLsofRunsAndReturnsValidPorts() async throws {

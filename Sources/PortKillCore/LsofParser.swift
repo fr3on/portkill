@@ -1,6 +1,6 @@
 import Foundation
 
-/// Parses `lsof -F pcuLn` output: one field per line, the first character is the field id.
+/// Parses `lsof -F pcuLnP` output: one field per line, the first character is the field id.
 /// `p` starts a process record; `c`, `u`, `L` describe it; each `n` is one listening socket.
 public enum LsofParser {
     public static func parseListeningPorts(_ output: String) -> [ListeningPort] {
@@ -11,6 +11,7 @@ public enum LsofParser {
         var command = ""
         var uid: UInt32 = 0
         var user = ""
+        var transport = TransportProtocol.tcp
 
         for line in output.split(whereSeparator: \.isNewline) {
             guard let tag = line.first else { continue }
@@ -22,21 +23,25 @@ public enum LsofParser {
                 command = ""
                 uid = 0
                 user = ""
+                transport = .tcp
             case "c":
                 command = decodeCommand(value)
             case "u":
                 uid = UInt32(value) ?? 0
             case "L":
                 user = value
+            case "P":
+                transport = value.uppercased() == "UDP" ? .udp : .tcp
             case "n":
-                guard let pid, let port = port(fromName: value) else { continue }
-                let entry = ListeningPort(port: port, pid: pid, command: command, uid: uid, user: user)
+                // Connected UDP sockets read `local->remote`; only bound sockets are listeners.
+                guard !value.contains("->"), let pid, let port = port(fromName: value) else { continue }
+                let entry = ListeningPort(port: port, pid: pid, command: command, uid: uid, user: user, transport: transport)
                 if seen.insert(entry.id).inserted { results.append(entry) }
             default:
                 continue
             }
         }
-        return results.sorted { ($0.port, $0.pid) < ($1.port, $1.pid) }
+        return results.sorted { ($0.port, $0.pid, $0.transport.rawValue) < ($1.port, $1.pid, $1.transport.rawValue) }
     }
 
     /// Parses `lsof -Fpn -d cwd` output into pid -> working directory.

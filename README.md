@@ -20,18 +20,22 @@ No more `lsof -i :3000` followed by `kill -9 <PID>`.
 ## Features
 
 **Find**
-- Lists every process listening on a local TCP port, with PID and uptime.
-- Shows the project behind each port by finding the nearest `.git`, `package.json`, `Package.swift`, `pyproject.toml` or `Cargo.toml` above the process's working directory.
+- Lists every process listening on a local TCP port, with PID, uptime and memory use.
+- Shows the project behind each port by finding the nearest `.git`, `package.json`, `Package.swift`, `pyproject.toml`, `Pipfile`, `Cargo.toml`, `go.mod`, `Gemfile`, `composer.json`, `pom.xml`, `build.gradle(.kts)` or `mix.exs` above the process's working directory.
+- Groups a process's ports on one row. Ports published by Docker show the container name and image (the row is read-only; copy `docker stop <name>`).
+- Optionally lists UDP sockets.
 - Filters by port, command or project name.
 
 **Act**
 - Kills with `SIGTERM` first. If the process is still running after 3 seconds, offers **Force Kill** (`SIGKILL`).
 - Click a port badge to copy `localhost:<port>`. Hover a row to open it in your browser.
-- Click a row for details: command, user, start time, project folder, Reveal in Finder, Copy Path.
+- Click a row for details: command, user, start time, project folder, Reveal in Finder, Copy Path, Open in Terminal, and copyable `kill <PID>` / `lsof` snippets.
+- `⌘F` searches, `Esc` clears, `⌘R` refreshes. The gear menu has Launch at Login, an optional port count in the menu bar, a system-process toggle and a terminal picker.
 
 **Stay out of the way**
-- Polls only while the popover is open.
-- No network access, analytics or third-party dependencies.
+- Runs `docker ps` only when Docker is actually publishing a port, and only against a local Docker socket (never a remote `DOCKER_HOST`).
+- Polls only while the popover is open. The optional menu bar count adds one light `lsof` every 10 seconds while it is closed.
+- No analytics or third-party dependencies. The only network request is the optional "Check for Updates…" (one request to `api.github.com`), and only when you choose it. PortKill never checks on its own.
 - Follows the system light and dark appearance.
 
 The popover also shows your chip, memory and live CPU load. On M1–M4 Macs it adds a rough GPU compute estimate.
@@ -82,7 +86,7 @@ System processes and other users' processes are hidden by default.
 
 ## Privacy
 
-PortKill runs `lsof` and `ps` on your Mac and sends signals to your own processes. It makes no network requests and collects nothing. It isn't sandboxed because it has to inspect other processes. It uses the Hardened Runtime with no extra entitlements. See [SECURITY.md](SECURITY.md) to report a problem.
+PortKill runs `lsof`, `ps` and, when Docker is publishing ports, `docker ps` on your Mac and sends signals to your own processes. It collects nothing and makes no network requests, except the one to `api.github.com` when you choose "Check for Updates…". Docker is only queried through a local socket. It isn't sandboxed because it has to inspect other processes. It uses the Hardened Runtime with no extra entitlements. See [SECURITY.md](SECURITY.md) to report a problem.
 
 ## Development
 

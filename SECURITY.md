@@ -16,5 +16,5 @@ Only the latest release receives fixes.
 ## What PortKill does and doesn't do
 
 - Runs `lsof` and `ps` locally, and sends `SIGTERM` or `SIGKILL` only to processes owned by the current user.
-- Makes no network requests and collects no data.
+- Collects no data. Its only network request is a single call to `api.github.com` when you choose "Check for Updates…"; it never checks automatically. Docker is queried only through a local unix socket, never a remote host.
 - Is not sandboxed, because it needs to inspect other processes. It uses the Hardened Runtime with no extra entitlements.

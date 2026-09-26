@@ -14,11 +14,10 @@ struct HardwareSpecsView: View {
                 }
             } label: {
                 HStack(spacing: Theme.Spacing.sm) {
-                    // Apple logo & chip
-                    HStack(spacing: 4.5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "apple.logo")
                             .font(.system(size: 10.5, weight: .medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.secondary.opacity(0.9))
 
                         Text(hardware.chipName)
                             .font(.system(size: 11, weight: .semibold))
@@ -28,67 +27,55 @@ struct HardwareSpecsView: View {
 
                     Spacer(minLength: 4)
 
-                    // Vertical divider
                     Capsule()
-                        .fill(Color.primary.opacity(0.12))
+                        .fill(Color.primary.opacity(0.1))
                         .frame(width: 1, height: 10)
 
-                    // Memory
                     Text(hardware.totalMemoryFormatted)
-                        .font(.system(size: 10.5, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .font(Theme.Typography.metaMono)
+                        .foregroundStyle(Color.secondary.opacity(0.9))
                         .lineLimit(1)
 
-                    // Vertical divider
                     Capsule()
-                        .fill(Color.primary.opacity(0.12))
+                        .fill(Color.primary.opacity(0.1))
                         .frame(width: 1, height: 10)
 
-                    // GPU compute estimate, only when we can compute it honestly
                     if let tflops = hardware.tflopsFormatted {
-                        HStack(spacing: 3) {
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundStyle(Theme.Colors.statusActive)
-                            Text(tflops)
-                                .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(Theme.Colors.statusActive)
-                        }
-                        .lineLimit(1)
+                        Text(tflops)
+                            .font(Theme.Typography.metaMono)
+                            .foregroundStyle(Color.secondary.opacity(0.9))
+                            .lineLimit(1)
 
-                        // Vertical divider
                         Capsule()
-                            .fill(Color.primary.opacity(0.12))
+                            .fill(Color.primary.opacity(0.1))
                             .frame(width: 1, height: 10)
                     }
 
-                    // CPU live load
-                    HStack(spacing: 4) {
+                    HStack(spacing: 4.5) {
                         ZStack(alignment: .leading) {
                             Capsule()
-                                .fill(Color.primary.opacity(0.10))
+                                .fill(Color.primary.opacity(0.08))
                             Capsule()
-                                .fill(isHighLoad ? Theme.Colors.killRed : Theme.Colors.statusActive)
-                                .frame(width: max(2, 20 * CGFloat(min(max(cpuPercent ?? 0, 0), 100) / 100.0)))
+                                .fill(cpuGaugeColor)
+                                .frame(width: max(2, 22 * CGFloat(min(max(cpuPercent ?? 0, 0), 100) / 100.0)))
                         }
-                        .frame(width: 20, height: 4)
+                        .frame(width: 22, height: 4)
 
                         Text(cpuLabel)
-                            .font(.system(size: 10.5, weight: .medium, design: .monospaced))
-                            .foregroundStyle(isHighLoad ? Theme.Colors.killRed : .secondary)
+                            .font(Theme.Typography.metaMono)
+                            .foregroundStyle(isHighLoad ? Theme.Colors.killRed : Color.secondary.opacity(0.9))
                             .lineLimit(1)
                     }
 
                     Spacer(minLength: 2)
 
-                    // Rotating disclosure chevron
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 8.5, weight: .bold))
-                        .foregroundStyle(.tertiary)
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(Color.secondary.opacity(0.55))
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
                 .padding(.horizontal, 10)
-                .padding(.vertical, 7)
+                .padding(.vertical, 6.5)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -96,7 +83,7 @@ struct HardwareSpecsView: View {
 
             if isExpanded {
                 Divider()
-                    .overlay(Color.primary.opacity(0.06))
+                    .overlay(Theme.Colors.rowSeparator)
 
                 HStack(spacing: 6) {
                     detailTile(
@@ -115,11 +102,10 @@ struct HardwareSpecsView: View {
 
                     if let tflops = hardware.tflopsFormatted {
                         detailTile(
-                            icon: "bolt.fill",
+                            icon: nil,
                             title: "COMPUTE",
                             value: tflops,
-                            subtitle: "Est. peak FP32",
-                            highlight: true
+                            subtitle: "Peak FP32"
                         )
                     }
 
@@ -127,63 +113,75 @@ struct HardwareSpecsView: View {
                         icon: "gauge.medium",
                         title: "CPU LOAD",
                         value: cpuLabel,
-                        subtitle: isHighLoad ? "High" : "Normal",
+                        subtitle: isHighLoad ? "High Load" : "Nominal",
                         isAlert: isHighLoad
                     )
                 }
                 .padding(.horizontal, 8)
-                .padding(.vertical, 8)
+                .padding(.vertical, 7)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .background(
             RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
-                .fill(Color.primary.opacity(isHovered ? 0.045 : 0.025))
+                .fill(isHovered ? Theme.Colors.cardHover : Theme.Colors.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
-                .stroke(Color.primary.opacity(isExpanded ? 0.12 : 0.06), lineWidth: 1)
+                .stroke(isExpanded ? Theme.Colors.cardBorderActive : Theme.Colors.cardBorder, lineWidth: 1)
         )
     }
 
     private func detailTile(
-        icon: String,
+        icon: String?,
         title: String,
         value: String,
         subtitle: String,
-        highlight: Bool = false,
         isAlert: Bool = false
     ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 2.5) {
-                Image(systemName: icon)
-                    .font(.system(size: 8, weight: .semibold))
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 3.5) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 8, weight: .semibold))
+                }
                 Text(title)
-                    .font(.system(size: 8.5, weight: .semibold))
+                    .font(.system(size: 8.5, weight: .bold))
             }
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(Color.secondary.opacity(0.75))
 
             Text(value)
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                .minimumScaleFactor(0.75)
-                .foregroundStyle(isAlert ? Theme.Colors.killRed : (highlight ? Theme.Colors.statusActive : .primary))
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .minimumScaleFactor(0.8)
+                .foregroundStyle(isAlert ? Theme.Colors.killRed : Color.primary.opacity(0.92))
                 .lineLimit(1)
 
             Text(subtitle)
                 .font(.system(size: 9, weight: .regular))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.secondary.opacity(0.75))
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 5)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 5.5)
         .background(
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.primary.opacity(0.025))
+                .fill(Color.primary.opacity(0.035))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(Color.primary.opacity(0.05), lineWidth: 0.8)
         )
     }
 
     private var isHighLoad: Bool { (cpuPercent ?? 0) > 70 }
+
+    private var cpuGaugeColor: Color {
+        let load = cpuPercent ?? 0
+        if load > 75 { return Theme.Colors.killRed }
+        if load > 50 { return Theme.Colors.statusWarning }
+        return Theme.Colors.statusActive
+    }
 
     private var cpuLabel: String {
         cpuPercent.map { String(format: "%.0f%%", $0) } ?? "–"

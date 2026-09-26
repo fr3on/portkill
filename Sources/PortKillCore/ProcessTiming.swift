@@ -1,12 +1,12 @@
 import Foundation
 
 public enum ProcessTiming {
-    /// Parses `ps -o pid=,etime=` lines into start dates (now minus elapsed time).
+    /// Parses `ps -o pid=,etime=[,...]` lines into start dates (now minus elapsed time).
     public static func startDates(fromPS output: String, now: Date) -> [Int: Date] {
         var result: [Int: Date] = [:]
         for line in output.split(whereSeparator: \.isNewline) {
             let parts = line.split(separator: " ", omittingEmptySubsequences: true)
-            guard parts.count == 2, let pid = Int(parts[0]), let seconds = elapsedSeconds(String(parts[1])) else { continue }
+            guard parts.count >= 2, let pid = Int(parts[0]), let seconds = elapsedSeconds(String(parts[1])) else { continue }
             result[pid] = now.addingTimeInterval(-TimeInterval(seconds))
         }
         return result

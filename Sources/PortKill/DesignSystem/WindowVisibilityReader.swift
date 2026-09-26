@@ -1,8 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Reports whether the hosting window is actually on screen. A menu bar popover keeps its SwiftUI view alive
-/// after it closes, so `onDisappear` / `.task` cannot tell us when to stop polling.
+/// Manages window transparency, visibility tracking, and initial height restoration.
 struct WindowVisibilityReader: NSViewRepresentable {
     let onChange: (Bool) -> Void
 
@@ -28,6 +27,27 @@ struct WindowVisibilityReader: NSViewRepresentable {
                 report(false)
                 return
             }
+
+            // Ensure window background is transparent so frosted glass reaches all edges
+            window.isOpaque = false
+            window.backgroundColor = .clear
+
+            let saved = UserDefaults.standard.double(forKey: "popoverHeight")
+            let targetHeight: CGFloat = (saved >= Theme.Dimensions.minPopoverHeight && saved <= Theme.Dimensions.maxPopoverHeight)
+                ? CGFloat(saved)
+                : Theme.Dimensions.defaultPopoverHeight
+
+            let current = window.frame
+            if abs(current.height - targetHeight) > 1 {
+                let newFrame = NSRect(
+                    x: current.origin.x,
+                    y: current.maxY - targetHeight,
+                    width: Theme.Dimensions.popoverWidth,
+                    height: targetHeight
+                )
+                window.setFrame(newFrame, display: true, animate: false)
+            }
+
             let names: [Notification.Name] = [
                 NSWindow.didChangeOcclusionStateNotification,
                 NSWindow.didBecomeKeyNotification,

@@ -19,6 +19,12 @@ struct ProcessTimingTests {
         #expect(dates.count == 2)
     }
 
+    @Test func ignoresExtraColumnsAfterElapsedTime() {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let dates = ProcessTiming.startDates(fromPS: "49201 14:00 189440\n", now: now)
+        #expect(dates[49201] == now.addingTimeInterval(-840))
+    }
+
     @Test func formatsUptime() {
         let now = Date(timeIntervalSince1970: 1_000_000)
         #expect(ProcessTiming.format(uptime: now.addingTimeInterval(-30), now: now) == "30s")

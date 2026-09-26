@@ -27,7 +27,11 @@ struct ProjectDetectorTests {
     }
 
     @Test func recognisesEveryMarker() throws {
-        for marker in ["package.json", "Package.swift", "pyproject.toml", "Cargo.toml"] {
+        for marker in [
+            "package.json", "Package.swift", "pyproject.toml", "Cargo.toml",
+            "go.mod", "Gemfile", "composer.json", "pom.xml", "build.gradle", "build.gradle.kts",
+            "mix.exs", "Pipfile",
+        ] {
             let root = try makeTree(["proj/\(marker)", "proj/sub/x"])
             defer { try? FileManager.default.removeItem(at: root) }
             let project = ProjectDetector.project(
@@ -36,6 +40,16 @@ struct ProjectDetectorTests {
             )
             #expect(project?.name == "proj", "marker \(marker)")
         }
+    }
+
+    @Test func subfolderFilesDontClaimTheRepoRoot() throws {
+        let root = try makeTree(["repo/.git", "repo/api/requirements.txt", "repo/api/docker-compose.yml", "repo/api/src/x"])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let project = ProjectDetector.project(
+            forWorkingDirectory: root.appendingPathComponent("repo/api/src").path,
+            homeDirectory: root.path
+        )
+        #expect(project?.name == "repo")
     }
 
     @Test func gitDirectoryCountsAsAMarker() throws {
