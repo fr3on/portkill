@@ -71,7 +71,7 @@ private struct DockerStub: CommandRunning {
 
 struct ScannerDockerTests {
     @Test func attachesContainersToDockerProxyPortsOnly() async throws {
-        let lsof = "p50\ncom.docker.backend\nu501\nLme\nn*:8080\np60\ncnode\nu501\nLme\nn*:3000\n"
+        let lsof = "p50\nccom.docker.backend\nu501\nLme\nn*:8080\np60\ncnode\nu501\nLme\nn*:3000\n"
         let runner = DockerStub(lsof: lsof, docker: "web\tnginx\t0.0.0.0:8080->80/tcp\n")
         let scanner = PortScanner(runner: runner, docker: DockerResolver(runner: runner, executable: "/x/docker", socket: "/x/docker.sock"))
         let ports = try await scanner.scan()
@@ -80,7 +80,7 @@ struct ScannerDockerTests {
     }
 
     @Test func missingDockerCLILeavesPortsUntouched() async throws {
-        let lsof = "p50\ncom.docker.backend\nu501\nLme\nn*:8080\n"
+        let lsof = "p50\nccom.docker.backend\nu501\nLme\nn*:8080\n"
         let runner = DockerStub(lsof: lsof, docker: "")
         let scanner = PortScanner(runner: runner, docker: DockerResolver(runner: runner, executable: nil, socket: nil))
         #expect(try await scanner.scan().first?.container == nil)
