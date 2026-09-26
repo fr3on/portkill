@@ -16,14 +16,15 @@ struct KillButton: View {
 
     @UIState private var state: KillState = .idle
     @UIState private var timerTask: Task<Void, Never>? = nil
+    @UIState private var isHovered = false
 
     var body: some View {
         Group {
             if let readOnlyLabel {
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 11))
+                    .font(.system(size: 10.5))
                     .foregroundStyle(.tertiary)
-                    .padding(.horizontal, Theme.Spacing.sm)
+                    .frame(width: 24, height: 22)
                     .help("\(readOnlyLabel) process, read-only")
                     .accessibilityLabel("\(subject), \(readOnlyLabel) process, cannot be killed")
             } else {
@@ -35,11 +36,11 @@ struct KillButton: View {
                         Text("Kill")
                             .font(Theme.Typography.actionLabel)
                             .foregroundStyle(Theme.Colors.killRed)
-                            .padding(.horizontal, Theme.Spacing.sm + 2)
-                            .padding(.vertical, Theme.Spacing.xs)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 3.5)
                             .background(
                                 RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
-                                    .fill(Theme.Colors.killRedBackground)
+                                    .fill(isHovered ? Theme.Colors.killRed.opacity(0.22) : Theme.Colors.killRedBackground)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
@@ -47,19 +48,23 @@ struct KillButton: View {
                             )
                     }
                     .buttonStyle(.plain)
+                    .onHover { isHovered = $0 }
                     .accessibilityLabel("Kill \(subject)")
 
                 case .terminating(let remaining):
-                    HStack(spacing: Theme.Spacing.xs) {
+                    HStack(spacing: 4) {
                         ProgressView()
                             .controlSize(.mini)
                         Text("\(remaining)s")
-                            .font(Theme.Typography.metaText)
-                            .monospacedDigit()
+                            .font(Theme.Typography.metaMono)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.horizontal, Theme.Spacing.sm)
-                    .padding(.vertical, Theme.Spacing.xs)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3.5)
+                    .background(
+                        RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
+                            .fill(Color.primary.opacity(0.04))
+                    )
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("Stopping \(subject), \(remaining) seconds")
 
@@ -72,25 +77,31 @@ struct KillButton: View {
                         Text("Force Kill")
                             .font(Theme.Typography.actionLabel)
                             .foregroundStyle(.white)
-                            .padding(.horizontal, Theme.Spacing.sm + 2)
-                            .padding(.vertical, Theme.Spacing.xs)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 3.5)
                             .background(
                                 RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
                                     .fill(Theme.Colors.killRed)
                             )
+                            .shadow(color: Theme.Colors.killRed.opacity(0.3), radius: 3, y: 1)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Force kill \(subject)")
 
                 case .dead:
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.Colors.statusActive)
-                        .padding(.horizontal, Theme.Spacing.sm)
+                    HStack(spacing: 3) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 9, weight: .bold))
+                        Text("Stopped")
+                            .font(Theme.Typography.metaMono)
+                    }
+                    .foregroundStyle(Theme.Colors.statusActive)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3.5)
                 }
             }
         }
-        .animation(.easeInOut(duration: 0.16), value: state)
+        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: state)
         .onDisappear { timerTask?.cancel() }
     }
 

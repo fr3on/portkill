@@ -11,7 +11,13 @@ public struct Project: Hashable, Sendable {
 }
 
 public enum ProjectDetector {
-    static let markers = [".git", "package.json", "Package.swift", "pyproject.toml", "Cargo.toml"]
+    /// Files that often sit in subfolders (`requirements.txt`, compose files) are left out on purpose: the walk
+    /// stops at the nearest marker, so they would claim a subfolder instead of the repo root.
+    static let markers = [
+        ".git", "package.json", "Package.swift", "pyproject.toml", "Cargo.toml",
+        "go.mod", "Gemfile", "composer.json", "pom.xml", "build.gradle", "build.gradle.kts",
+        "mix.exs", "Pipfile",
+    ]
 
     /// Walks up from `cwd` to the nearest folder holding a project marker.
     /// The home folder and `/` never count, so a dotfiles repo in `~` doesn't claim every process.

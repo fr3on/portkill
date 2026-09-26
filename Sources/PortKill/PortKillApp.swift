@@ -21,7 +21,7 @@ struct PortKillApp: App {
         MenuBarExtra {
             MainPopoverView(state: state)
         } label: {
-            MenuBarIconView()
+            MenuBarIconView(state: state)
         }
         .menuBarExtraStyle(.window)
     }
