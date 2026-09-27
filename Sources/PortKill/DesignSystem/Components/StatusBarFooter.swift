@@ -1,11 +1,13 @@
 import AppKit
+import PortKillCore
 import SwiftUI
 
 struct StatusBarFooter: View {
-    let activeDevCount: Int
     let state: AppState
     var onRefresh: () -> Void = {}
     var onQuit: () -> Void = { NSApplication.shared.terminate(nil) }
+
+    private var activeDevCount: Int { state.devPortsCount }
 
     @UIState private var isHoveringQuit: Bool = false
     @UIState private var isHoveringRefresh: Bool = false
@@ -97,7 +99,7 @@ struct StatusBarFooter: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .help("Update available: v\(release.version) (Click to view)")
+                .help(state.strings.updateAvailableBadgeTooltip(version: release.version))
                 .transition(.opacity)
             }
 
@@ -120,8 +122,8 @@ struct StatusBarFooter: View {
             .buttonStyle(.plain)
             .onHover { isHoveringRefresh = $0 }
             .keyboardShortcut("r", modifiers: .command)
-            .help("Refresh now (⌘R)")
-            .accessibilityLabel("Refresh")
+            .help(state.strings.refreshTooltip)
+            .accessibilityLabel(state.strings.refreshLabel)
 
             settingsMenu
 
@@ -129,7 +131,7 @@ struct StatusBarFooter: View {
                 onQuit()
             } label: {
                 HStack(spacing: 4) {
-                    Text("Quit")
+                    Text(state.strings.quit)
                         .font(.system(size: 11, weight: .medium))
 
                     HStack(spacing: 1) {
@@ -161,49 +163,61 @@ struct StatusBarFooter: View {
             .buttonStyle(.plain)
             .onHover { isHoveringQuit = $0 }
             .keyboardShortcut("q", modifiers: .command)
-            .help("Quit PortKill (⌘Q)")
+            .help(state.strings.quitTooltip)
         }
     }
 
     private var statusText: String {
         if activeDevCount == 0 {
-            return "No dev ports active"
+            return state.strings.noDevPortsActive
         } else if activeDevCount == 1 {
-            return "1 dev port active"
+            return state.strings.oneDevPortActive
         } else {
-            return "\(activeDevCount) dev ports active"
+            return state.strings.devPortsActive(count: activeDevCount)
         }
     }
 
     private var settingsMenu: some View {
         Menu {
-            Button("About PortKill…") {
+            Button(state.strings.aboutPortKill) {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
                     state.showAboutModal = true
                 }
             }
             Divider()
-            Toggle("Launch at Login", isOn: Binding(
+            Picker(state.strings.languageTitle, selection: Binding(
+                get: { state.settings.language },
+                set: { state.setLanguage($0) }
+            )) {
+                Text("\(state.strings.systemDefault) (\(AppLanguage.resolveSystemLanguage().displayName))")
+                    .tag(AppLanguage.system)
+                Divider()
+                ForEach(AppLanguage.supportedLanguages) { lang in
+                    Text(lang.displayName).tag(lang)
+                }
+            }
+            Divider()
+            Toggle(state.strings.launchAtLogin, isOn: Binding(
                 get: { state.launchAtLogin },
                 set: { state.setLaunchAtLogin($0) }
             ))
             if state.launchNeedsApproval {
-                Button("Approve in Login Items…") { state.openLoginItemsSettings() }
+                Button(state.strings.approveInLoginItems) { state.openLoginItemsSettings() }
             }
-            Toggle("Show Port Count in Menu Bar", isOn: Binding(
+            Toggle(state.strings.showPortCountInMenuBar, isOn: Binding(
                 get: { state.showMenuBarCount },
                 set: { state.setShowMenuBarCount($0) }
             ))
-            Toggle("Show System Processes", isOn: Binding(
+            Toggle(state.strings.showSystemProcesses, isOn: Binding(
                 get: { state.showSystemProcesses },
                 set: { state.setShowSystemProcesses($0) }
             ))
-            Toggle("Show UDP Sockets", isOn: Binding(
+            Toggle(state.strings.showUDPSockets, isOn: Binding(
                 get: { state.showUDP },
                 set: { state.setShowUDP($0) }
             ))
             Divider()
-            Picker("Open in", selection: Binding(
+            Picker(state.strings.openIn, selection: Binding(
                 get: { state.terminal },
                 set: { state.setTerminal($0) }
             )) {
@@ -216,9 +230,9 @@ struct StatusBarFooter: View {
                 state.checkForUpdates(manual: true)
             } label: {
                 if state.updateChecker.isChecking {
-                    Text("Checking for Updates…")
+                    Text(state.strings.checkingForUpdates)
                 } else {
-                    Text("Check for Updates…")
+                    Text(state.strings.checkForUpdates)
                 }
             }
             .disabled(state.updateChecker.isChecking)
@@ -232,8 +246,8 @@ struct StatusBarFooter: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help("Settings")
-        .accessibilityLabel("Settings")
+        .help(state.strings.settings)
+        .accessibilityLabel(state.strings.settings)
     }
 
     private func noticeTextColor(for style: AppNotice.Style) -> Color {

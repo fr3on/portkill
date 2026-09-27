@@ -1,10 +1,12 @@
 import AppKit
+import PortKillCore
 import SwiftUI
 
 struct UpdateModalView: View {
     let release: GitHubRelease
     let currentVersion: String
     let onDismiss: () -> Void
+    @Environment(\.appLanguage) private var language
 
     var body: some View {
         VStack(spacing: Theme.Spacing.md) {
@@ -21,7 +23,7 @@ struct UpdateModalView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
-                        Text("Update Available")
+                        Text(language.strings.updateAvailableTitle)
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(Color.primary)
 
@@ -36,7 +38,7 @@ struct UpdateModalView: View {
                             )
                     }
 
-                    Text("You're on v\(currentVersion). A newer version is ready on GitHub.")
+                    Text(language.strings.updateAvailableDescription(currentVersion: currentVersion))
                         .font(.system(size: 11))
                         .foregroundStyle(Color.secondary)
                         .lineLimit(1)
@@ -48,7 +50,7 @@ struct UpdateModalView: View {
 
             if let body = release.body, !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("WHAT'S NEW")
+                    Text(language.strings.whatsNew)
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(Color.secondary.opacity(0.8))
                         .tracking(0.5)
@@ -74,7 +76,7 @@ struct UpdateModalView: View {
             }
 
             HStack(spacing: 8) {
-                Button("Later") {
+                Button(language.strings.later) {
                     onDismiss()
                 }
                 .buttonStyle(.plain)
@@ -96,7 +98,7 @@ struct UpdateModalView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "arrow.down.to.line")
                             .font(.system(size: 11, weight: .semibold))
-                        Text(release.dmgAsset != nil ? "Download DMG" : "View Release")
+                        Text(release.dmgAsset != nil ? language.strings.downloadDMG : language.strings.viewRelease)
                             .font(.system(size: 11.5, weight: .semibold))
                     }
                     .foregroundStyle(.white)

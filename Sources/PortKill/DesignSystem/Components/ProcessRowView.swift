@@ -17,6 +17,7 @@ struct ProcessRowView: View {
     @UIState private var copiedPath = false
     @UIState private var copiedKill = false
     @UIState private var copiedLsof = false
+    @Environment(\.appLanguage) private var language
 
     private var identity: ProcessIdentity {
         ProcessIdentity.resolve(
@@ -93,7 +94,7 @@ struct ProcessRowView: View {
 
                     HStack(spacing: 5) {
                         if item.container != nil {
-                            Text("Docker container")
+                            Text(language.strings.dockerContainer)
                         } else {
                             Text(verbatim: "PID \(item.pid)")
                                 .font(Theme.Typography.metaMono)
@@ -136,14 +137,14 @@ struct ProcessRowView: View {
                                 )
                         }
                         .buttonStyle(.plain)
-                        .help("Open in browser (\(item.localURLString))")
-                        .accessibilityLabel("Open \(item.localURLString) in browser")
+                        .help(language.strings.openInBrowserTooltip(url: item.localURLString))
+                        .accessibilityLabel(language.strings.openInBrowserAccessibility(url: item.localURLString))
                         .transition(.scale.combined(with: .opacity))
                     }
 
                     KillButton(
                         subject: "\(displayName) on port \(item.port)",
-                        readOnlyLabel: readOnlyReason?.label,
+                        readOnlyLabel: readOnlyReason?.localized(for: language),
                         onKill: onKill,
                         onForceKill: onForceKill,
                         isAlive: isAlive
@@ -167,7 +168,7 @@ struct ProcessRowView: View {
                     if let project = item.project {
                         VStack(alignment: .leading, spacing: 5) {
                             HStack {
-                                Text("PROJECT DIRECTORY")
+                                Text(language.strings.projectDirectory)
                                     .font(.system(size: 8.5, weight: .bold))
                                     .foregroundStyle(Color.secondary.opacity(0.8))
 
@@ -176,7 +177,7 @@ struct ProcessRowView: View {
                                 HStack(spacing: 5) {
                                     actionPill(
                                         icon: "folder",
-                                        label: "Reveal",
+                                        label: language.strings.reveal,
                                         action: { revealInFinder(path: project.path) }
                                     )
 
@@ -188,7 +189,7 @@ struct ProcessRowView: View {
 
                                     actionPill(
                                         icon: copiedPath ? "checkmark" : "doc.on.doc",
-                                        label: copiedPath ? "Copied" : "Copy Path",
+                                        label: copiedPath ? language.strings.copied : language.strings.copyPath,
                                         tint: copiedPath ? Theme.Colors.statusActive : .secondary,
                                         action: {
                                             copyToClipboard(text: project.path)
@@ -242,13 +243,13 @@ struct ProcessRowView: View {
                     }
 
                     HStack(spacing: 5) {
-                        specTile(title: "RUNTIME", value: item.command)
-                        specTile(title: "USER", value: "\(item.user) (\(item.uid))")
+                        specTile(title: language.strings.runtime, value: item.command)
+                        specTile(title: language.strings.user, value: "\(item.user) (\(item.uid))")
                         if let startedAt = item.startedAt {
-                            specTile(title: "STARTED", value: formatTime(startedAt))
+                            specTile(title: language.strings.started, value: formatTime(startedAt))
                         }
                         if let memory = ProcessMemory.format(item.memoryBytes) {
-                            specTile(title: "MEMORY", value: memory)
+                            specTile(title: language.strings.memory, value: memory)
                         }
                     }
 
@@ -346,7 +347,7 @@ struct ProcessRowView: View {
             )
         }
         .buttonStyle(.plain)
-        .help("Click to copy: \(command)")
+        .help(language.strings.clickToCopy(command: command))
     }
 
     private func specTile(title: String, value: String) -> some View {
@@ -376,7 +377,7 @@ struct ProcessRowView: View {
                 Image(systemName: "shippingbox.fill")
                     .font(.system(size: 9.5))
                     .foregroundStyle(Color.blue)
-                Text("Docker Container • Stop via docker stop \(container.name)")
+                Text(language.strings.dockerContainerStopBanner(name: container.name))
                     .font(.system(size: 9.5, weight: .medium))
                     .foregroundStyle(Color.blue)
                     .lineLimit(1)
@@ -384,7 +385,7 @@ struct ProcessRowView: View {
                 Image(systemName: "lock.shield.fill")
                     .font(.system(size: 9.5))
                     .foregroundStyle(Theme.Colors.killRed)
-                Text("Protected process (\(reason.label)) • Cannot be killed")
+                Text(language.strings.protectedProcessBanner(reason: reason.localized(for: language)))
                     .font(.system(size: 9.5, weight: .medium))
                     .foregroundStyle(Theme.Colors.killRed)
                     .lineLimit(1)
@@ -392,7 +393,7 @@ struct ProcessRowView: View {
                 Image(systemName: "checkmark.shield.fill")
                     .font(.system(size: 9.5))
                     .foregroundStyle(Theme.Colors.statusActive)
-                Text("Owned by you • Safe to terminate")
+                Text(language.strings.safeToTerminateBanner)
                     .font(.system(size: 9.5, weight: .medium))
                     .foregroundStyle(Theme.Colors.statusActive)
                     .lineLimit(1)

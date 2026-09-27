@@ -8,6 +8,7 @@ public struct Settings: Equatable, Sendable {
     public var showMenuBarCount = false
     public var showUDP = false
     public var terminalBundleID = Settings.defaultTerminalBundleID
+    public var language: AppLanguage = .system
 
     public init() {}
 
@@ -16,6 +17,7 @@ public struct Settings: Equatable, Sendable {
         static let showMenuBarCount = "showMenuBarCount"
         static let showUDP = "showUDP"
         static let terminalBundleID = "terminalBundleID"
+        static let language = "appLanguage"
     }
 
     public static func load(from defaults: UserDefaults = .standard) -> Settings {
@@ -26,6 +28,10 @@ public struct Settings: Equatable, Sendable {
         if let id = defaults.string(forKey: Key.terminalBundleID), !id.isEmpty {
             settings.terminalBundleID = id
         }
+        if let rawLang = defaults.string(forKey: Key.language),
+           let lang = AppLanguage(rawValue: rawLang) {
+            settings.language = lang
+        }
         return settings
     }
 
@@ -34,6 +40,7 @@ public struct Settings: Equatable, Sendable {
         defaults.set(showMenuBarCount, forKey: Key.showMenuBarCount)
         defaults.set(showUDP, forKey: Key.showUDP)
         defaults.set(terminalBundleID, forKey: Key.terminalBundleID)
+        defaults.set(language.rawValue, forKey: Key.language)
     }
 
     /// Falls back to the default terminal when the chosen one is no longer installed.

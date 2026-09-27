@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/preview.jpg" alt="PortKill popover listing local dev servers" width="560" />
+  <img src="docs/images/preview.png" alt="PortKill preview banner" width="800" />
 </p>
 
 No more `lsof -i :3000` followed by `kill -9 <PID>`.
@@ -30,13 +30,14 @@ No more `lsof -i :3000` followed by `kill -9 <PID>`.
 - Kills with `SIGTERM` first. If the process is still running after 3 seconds, offers **Force Kill** (`SIGKILL`).
 - Click a port badge to copy `localhost:<port>`. Hover a row to open it in your browser.
 - Click a row for details: command, user, start time, project folder, Reveal in Finder, Copy Path, Open in Terminal, and copyable `kill <PID>` / `lsof` snippets.
-- `⌘F` searches, `Esc` clears, `⌘R` refreshes. The gear menu has Launch at Login, an optional port count in the menu bar, a system-process toggle and a terminal picker.
+- `⌘F` searches, `Esc` clears, `⌘R` refreshes. The gear menu has Launch at Login, an optional port count in the menu bar, a system-process toggle, a terminal picker, and an in-app language switcher.
 
 **Stay out of the way**
 - Runs `docker ps` only when Docker is actually publishing a port, and only against a local Docker socket (never a remote `DOCKER_HOST`).
 - Polls only while the popover is open. The optional menu bar count adds one light `lsof` every 10 seconds while it is closed.
 - No analytics or third-party dependencies. The only network request is the optional "Check for Updates…" (one request to `api.github.com`), and only when you choose it. PortKill never checks on its own.
-- Follows the system light and dark appearance.
+- Follows system light and dark appearance.
+- Supports 7 languages: English, 简体中文, 日本語, Deutsch, Español, Français, and Türkçe.
 
 The popover also shows your chip, memory and live CPU load. On M1–M4 Macs it adds a rough GPU compute estimate.
 

@@ -1,3 +1,4 @@
+import PortKillCore
 import SwiftUI
 
 enum KillState: Equatable {
@@ -17,6 +18,7 @@ struct KillButton: View {
     @UIState private var state: KillState = .idle
     @UIState private var timerTask: Task<Void, Never>? = nil
     @UIState private var isHovered = false
+    @Environment(\.appLanguage) private var language
 
     var body: some View {
         Group {
@@ -25,15 +27,15 @@ struct KillButton: View {
                     .font(.system(size: 10.5))
                     .foregroundStyle(.tertiary)
                     .frame(width: 24, height: 22)
-                    .help("\(readOnlyLabel) process, read-only")
-                    .accessibilityLabel("\(subject), \(readOnlyLabel) process, cannot be killed")
+                    .help(language.strings.readOnlyTooltip(reason: readOnlyLabel))
+                    .accessibilityLabel(language.strings.readOnlyAccessibility(subject: subject, reason: readOnlyLabel))
             } else {
                 switch state {
                 case .idle:
                     Button {
                         initiateKill()
                     } label: {
-                        Text("Kill")
+                        Text(language.strings.kill)
                             .font(Theme.Typography.actionLabel)
                             .foregroundStyle(Theme.Colors.killRed)
                             .padding(.horizontal, 9)
@@ -49,7 +51,7 @@ struct KillButton: View {
                     }
                     .buttonStyle(.plain)
                     .onHover { isHovered = $0 }
-                    .accessibilityLabel("Kill \(subject)")
+                    .accessibilityLabel(language.strings.killAccessibility(subject: subject))
 
                 case .terminating(let remaining):
                     HStack(spacing: 4) {
@@ -66,7 +68,7 @@ struct KillButton: View {
                             .fill(Color.primary.opacity(0.04))
                     )
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Stopping \(subject), \(remaining) seconds")
+                    .accessibilityLabel(language.strings.stoppingAccessibility(subject: subject, remainingSeconds: remaining))
 
                 case .requiresForceKill:
                     Button {
@@ -74,7 +76,7 @@ struct KillButton: View {
                         state = .dead
                         onForceKill()
                     } label: {
-                        Text("Force Kill")
+                        Text(language.strings.forceKill)
                             .font(Theme.Typography.actionLabel)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 9)
@@ -86,13 +88,13 @@ struct KillButton: View {
                             .shadow(color: Theme.Colors.killRed.opacity(0.3), radius: 3, y: 1)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Force kill \(subject)")
+                    .accessibilityLabel(language.strings.forceKillAccessibility(subject: subject))
 
                 case .dead:
                     HStack(spacing: 3) {
                         Image(systemName: "checkmark")
                             .font(.system(size: 9, weight: .bold))
-                        Text("Stopped")
+                        Text(language.strings.stopped)
                             .font(Theme.Typography.metaMono)
                     }
                     .foregroundStyle(Theme.Colors.statusActive)

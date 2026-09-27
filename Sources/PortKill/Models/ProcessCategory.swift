@@ -8,6 +8,15 @@ enum ProcessCategory: String, CaseIterable, Identifiable, Sendable {
     case helpers = "Helpers"
 
     var id: String { rawValue }
+
+    func localized(for language: AppLanguage) -> String {
+        switch self {
+        case .all: language.strings.categoryAll
+        case .dev: language.strings.categoryDev
+        case .docker: language.strings.categoryDocker
+        case .helpers: language.strings.categoryHelpers
+        }
+    }
 }
 
 extension ProcessGroup {

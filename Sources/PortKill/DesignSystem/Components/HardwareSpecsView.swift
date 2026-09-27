@@ -1,10 +1,14 @@
+import PortKillCore
 import SwiftUI
 
 struct HardwareSpecsView: View {
-    let cpuPercent: Double?
+    let state: AppState
     @Binding var isExpanded: Bool
     @UIState private var isHovered: Bool = false
     let hardware = SystemHardware.current
+    @Environment(\.appLanguage) private var language
+
+    private var cpuPercent: Double? { state.cpuPercent }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -88,32 +92,32 @@ struct HardwareSpecsView: View {
                 HStack(spacing: 6) {
                     detailTile(
                         icon: "cpu",
-                        title: "CORES",
-                        value: "\(hardware.coreCount)c CPU",
-                        subtitle: hardware.gpuCoreCount.map { "\($0)c GPU" } ?? "GPU"
+                        title: language.strings.cores,
+                        value: language.strings.cpuCores(count: hardware.coreCount),
+                        subtitle: hardware.gpuCoreCount.map { language.strings.gpuCores(count: $0) } ?? "GPU"
                     )
 
                     detailTile(
                         icon: "memorychip",
-                        title: "RAM",
+                        title: language.strings.ram,
                         value: hardware.totalMemoryFormatted,
-                        subtitle: "Unified"
+                        subtitle: language.strings.unified
                     )
 
                     if let tflops = hardware.tflopsFormatted {
                         detailTile(
                             icon: nil,
-                            title: "COMPUTE",
+                            title: language.strings.compute,
                             value: tflops,
-                            subtitle: "Peak FP32"
+                            subtitle: language.strings.peakFP32
                         )
                     }
 
                     detailTile(
                         icon: "gauge.medium",
-                        title: "CPU LOAD",
+                        title: language.strings.cpuLoad,
                         value: cpuLabel,
-                        subtitle: isHighLoad ? "High Load" : "Nominal",
+                        subtitle: isHighLoad ? language.strings.highLoad : language.strings.nominal,
                         isAlert: isHighLoad
                     )
                 }

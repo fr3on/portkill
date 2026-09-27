@@ -1,7 +1,9 @@
+import PortKillCore
 import SwiftUI
 
 struct EmptyStateView: View {
     let query: String
+    @Environment(\.appLanguage) private var language
 
     var body: some View {
         VStack(spacing: Theme.Spacing.md) {
@@ -20,13 +22,11 @@ struct EmptyStateView: View {
             }
 
             VStack(spacing: 5) {
-                Text(query.isEmpty ? "No active dev servers" : "No results for \"\(query)\"")
+                Text(query.isEmpty ? language.strings.noActiveDevServers : language.strings.noResults(for: query))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.primary)
 
-                Text(query.isEmpty
-                     ? "Start a server (e.g. npm run dev or python -m http.server) and it will appear here."
-                     : "Try searching by another port number, process name, or project.")
+                Text(query.isEmpty ? language.strings.noActiveDevServersHint : language.strings.noResultsHint)
                     .font(.system(size: 11.5))
                     .foregroundStyle(Color.secondary.opacity(0.8))
                     .multilineTextAlignment(.center)

@@ -1,10 +1,12 @@
 import AppKit
+import PortKillCore
 import SwiftUI
 
 struct AboutModalView: View {
     let currentVersion: String
     let onDismiss: () -> Void
     var onCheckUpdates: () -> Void = {}
+    @Environment(\.appLanguage) private var language
 
     private var appIcon: NSImage {
         if let icon = NSImage(named: "AppIcon") {
@@ -55,7 +57,7 @@ struct AboutModalView: View {
                             )
                     }
 
-                    Text("Fast, minimal menu bar port manager for macOS")
+                    Text(language.strings.aboutTagline)
                         .font(.system(size: 11))
                         .foregroundStyle(Color.secondary)
                         .multilineTextAlignment(.center)
@@ -66,7 +68,7 @@ struct AboutModalView: View {
             VStack(spacing: 8) {
                 LinkCard(
                     icon: "person.crop.circle.fill",
-                    title: "Created by @fr3on",
+                    title: language.strings.createdBy,
                     subtitle: "github.com/fr3on",
                     url: authorURL
                 )
@@ -74,7 +76,7 @@ struct AboutModalView: View {
                 LinkCard(
                     icon: "chevron.left.forwardslash.chevron.right",
                     title: "fr3on / portkill",
-                    subtitle: "Source code, releases & issue tracker",
+                    subtitle: language.strings.sourceAndReleases,
                     url: repoURL
                 )
             }
@@ -89,7 +91,7 @@ struct AboutModalView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .font(.system(size: 10, weight: .medium))
-                        Text("Check for Updates")
+                        Text(language.strings.checkUpdatesButton)
                             .font(.system(size: 11, weight: .medium))
                     }
                     .foregroundStyle(Color.secondary)
@@ -104,7 +106,7 @@ struct AboutModalView: View {
 
                 Spacer()
 
-                Button("Done") {
+                Button(language.strings.done) {
                     onDismiss()
                 }
                 .buttonStyle(.plain)

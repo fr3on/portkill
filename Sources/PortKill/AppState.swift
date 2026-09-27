@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import os
@@ -24,6 +25,7 @@ final class AppState {
 
     var updateChecker: UpdateChecker { UpdateChecker.shared }
 
+    @ObservationIgnored private(set) var isMenuTracking = false
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private let scanner = PortScanner()
     @ObservationIgnored private let killer = ProcessKiller()
@@ -45,6 +47,28 @@ final class AppState {
         installedTerminals = []
         launchStatus = SMAppService.mainApp.status
         refreshEnvironment()
+        setupMenuTrackingObservers()
+    }
+
+    private func setupMenuTrackingObservers() {
+        NotificationCenter.default.addObserver(
+            forName: NSMenu.didBeginTrackingNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.isMenuTracking = true
+            }
+        }
+        NotificationCenter.default.addObserver(
+            forName: NSMenu.didEndTrackingNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.isMenuTracking = false
+            }
+        }
     }
 
     private var policy: KillPolicy { killer.policy }
@@ -53,6 +77,8 @@ final class AppState {
     var showMenuBarCount: Bool { settings.showMenuBarCount }
     var showUDP: Bool { settings.showUDP }
     var terminal: TerminalApp { TerminalApp.with(bundleID: settings.terminalBundleID) }
+    var language: AppLanguage { settings.language.resolved }
+    var strings: LocalizedStrings { language.strings }
 
     /// On when registered. `requiresApproval` counts as on: it is registered, the user still has to allow it.
     var launchAtLogin: Bool { launchStatus == .enabled || launchStatus == .requiresApproval }
@@ -65,6 +91,7 @@ final class AppState {
         Task { await refresh() }
     }
     func setTerminal(_ app: TerminalApp) { update { $0.terminalBundleID = app.bundleID } }
+    func setLanguage(_ value: AppLanguage) { update { $0.language = value } }
 
     private func update(_ change: (inout Settings) -> Void) {
         var copy = settings
@@ -91,10 +118,10 @@ final class AppState {
             }
         } catch {
             log.error("launch at login failed: \(String(describing: error), privacy: .public)")
-            showNotice(enabled ? "Could not enable Launch at Login" : "Could not disable Launch at Login", style: .error)
+            showNotice(enabled ? strings.couldNotEnableLoginNotice : strings.couldNotDisableLoginNotice, style: .error)
         }
         launchStatus = SMAppService.mainApp.status
-        if launchNeedsApproval { showNotice("Approve PortKill in Login Items", style: .info) }
+        if launchNeedsApproval { showNotice(strings.approveInLoginItemsNotice, style: .info) }
     }
 
     func openLoginItemsSettings() {
@@ -103,7 +130,7 @@ final class AppState {
 
     func openInTerminal(_ project: Project) {
         if !terminal.open(folder: project.path) {
-            showNotice("\(terminal.name) not found", style: .error)
+            showNotice(strings.terminalNotFoundNotice(name: terminal.name), style: .error)
         }
     }
 
@@ -161,7 +188,9 @@ final class AppState {
         log.info("polling started")
         defer { log.info("polling stopped") }
         while !Task.isCancelled {
-            await refresh()
+            if !isMenuTracking {
+                await refresh()
+            }
             try? await Task.sleep(for: .seconds(2))
         }
     }
@@ -172,7 +201,7 @@ final class AppState {
             publish(try await scanner.scan(includeUDP: settings.showUDP))
         } catch {
             log.error("scan failed: \(String(describing: error), privacy: .public)")
-            showNotice("Could not scan ports", style: .error)
+            showNotice(strings.couldNotScanPorts, style: .error)
         }
     }
 
@@ -205,14 +234,14 @@ final class AppState {
             try action()
             return true
         } catch KillError.permissionDenied {
-            showNotice("Permission denied", style: .error)
+            showNotice(strings.permissionDenied, style: .error)
         } catch KillError.processChanged {
-            showNotice("Process changed, refreshing", style: .info)
+            showNotice(strings.processChangedRefreshing, style: .info)
             Task { await refresh() }
         } catch KillError.notAllowed(let reason) {
-            showNotice("\(reason.label) process, not allowed", style: .error)
+            showNotice(strings.notAllowedProcess(reason: reason.localized(for: language)), style: .error)
         } catch {
-            showNotice("Could not stop process", style: .error)
+            showNotice(strings.couldNotStopProcess, style: .error)
         }
         return false
     }
@@ -229,18 +258,18 @@ final class AppState {
     func checkForUpdates(manual: Bool = true) {
         Task {
             if manual {
-                showNotice("Checking for updates…", style: .info, duration: 1.5)
+                showNotice(strings.checkingForUpdatesNotice, style: .info, duration: 1.5)
             }
             let result = await updateChecker.checkForUpdates(manual: manual)
             if manual {
                 switch result {
                 case .updateAvailable(let release):
-                    showNotice("Update available: v\(release.version)", style: .success, duration: 4.0)
+                    showNotice(strings.updateAvailableNotice(version: release.version), style: .success, duration: 4.0)
                     showUpdateModal = true
                 case .upToDate:
-                    showNotice("PortKill is up to date (v\(updateChecker.currentVersion))", style: .success, duration: 3.5)
+                    showNotice(strings.upToDateNotice(version: updateChecker.currentVersion), style: .success, duration: 3.5)
                 case .failed(let error):
-                    showNotice("Update check failed: \(error)", style: .error, duration: 4.0)
+                    showNotice(strings.updateCheckFailedNotice(error: error), style: .error, duration: 4.0)
                 }
             }
         }

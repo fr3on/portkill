@@ -34,12 +34,12 @@ struct MainPopoverView: View {
                     } else {
                         LazyVStack(spacing: 5) {
                             if selectedCategory == .all && devGroups.count > 0 && helperGroups.count > 0 {
-                                sectionHeader(title: "DEV SERVERS & PROJECTS", count: devGroups.count)
+                                sectionHeader(title: state.strings.devServersAndProjects, count: devGroups.count)
                                 ForEach(devGroups) { group in
                                     processRow(for: group)
                                 }
 
-                                sectionHeader(title: "BACKGROUND & HELPERS", count: helperGroups.count)
+                                sectionHeader(title: state.strings.backgroundAndHelpers, count: helperGroups.count)
                                     .padding(.top, 6)
                                 ForEach(helperGroups) { group in
                                     processRow(for: group)
@@ -61,9 +61,8 @@ struct MainPopoverView: View {
                 .overlay(Theme.Colors.rowSeparator)
 
             VStack(spacing: 7) {
-                HardwareSpecsView(cpuPercent: state.cpuPercent, isExpanded: $isHardwareExpanded)
+                HardwareSpecsView(state: state, isExpanded: $isHardwareExpanded)
                 StatusBarFooter(
-                    activeDevCount: state.devPortsCount,
                     state: state,
                     onRefresh: { Task { await state.refresh() } }
                 )
@@ -161,6 +160,7 @@ struct MainPopoverView: View {
             guard isOnScreen else { return }
             await state.runRefreshLoop()
         }
+        .environment(\.appLanguage, state.language)
     }
 
     // Classified once per scan in `AppState.categorized`, not on every render.
@@ -206,7 +206,7 @@ struct MainPopoverView: View {
             }
         } label: {
             HStack(spacing: 3.5) {
-                Text(category.rawValue)
+                Text(category.localized(for: state.language))
                     .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
 
                 Text("\(count)")

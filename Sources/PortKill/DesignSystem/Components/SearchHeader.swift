@@ -1,8 +1,10 @@
+import PortKillCore
 import SwiftUI
 
 struct SearchHeader: View {
     @Binding var query: String
     var isFocused: FocusState<Bool>.Binding
+    @Environment(\.appLanguage) private var language
 
     var body: some View {
         HStack(spacing: Theme.Spacing.sm) {
@@ -10,7 +12,7 @@ struct SearchHeader: View {
                 .font(.system(size: 11.5, weight: .semibold))
                 .foregroundStyle(isFocused.wrappedValue ? Color.accentColor : Color.secondary.opacity(0.8))
 
-            TextField("Search port, process, or project...", text: $query)
+            TextField(language.strings.searchPlaceholder, text: $query)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12, weight: .regular))
                 .focused(isFocused)
@@ -32,7 +34,7 @@ struct SearchHeader: View {
                         .foregroundStyle(Color.secondary.opacity(0.7))
                 }
                 .buttonStyle(.plain)
-                .help("Clear search")
+                .help(language.strings.clearSearch)
                 .transition(.scale.combined(with: .opacity))
             } else {
                 Text("⌘F")

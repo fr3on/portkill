@@ -7,6 +7,7 @@ struct PortBadge: View {
     var transport: TransportProtocol = .tcp
     var isDevPort: Bool = true
     @UIState private var justCopied = false
+    @Environment(\.appLanguage) private var language
 
     private static let commonDevPorts: Set<Int> = [
         3000, 3001, 3002, 3333, 4000, 4200, 4321, 5000, 5001, 5173, 5174,
@@ -67,8 +68,8 @@ struct PortBadge: View {
             )
         }
         .buttonStyle(.plain)
-        .help("Click to copy localhost:\(port)")
-        .accessibilityLabel("Copy localhost:\(port)")
+        .help(language.strings.clickToCopyPort(port: port))
+        .accessibilityLabel(language.strings.copyPortAccessibility(port: port))
         .animation(.spring(response: 0.22, dampingFraction: 0.8), value: justCopied)
     }
 

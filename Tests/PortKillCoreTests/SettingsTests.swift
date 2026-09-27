@@ -19,6 +19,7 @@ struct SettingsTests {
         settings.showMenuBarCount = true
         settings.showUDP = true
         settings.terminalBundleID = "com.googlecode.iterm2"
+        settings.language = .zhHans
         settings.save(to: defaults)
         #expect(Settings.load(from: defaults) == settings)
     }
