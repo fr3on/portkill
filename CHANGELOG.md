@@ -2,6 +2,23 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org).
 
+## [0.3.0] - 2026-09-27
+
+### Added
+- **Multi-language localization system**: Native support for 7 languages:
+  - English (`en`)
+  - 简体中文 / Simplified Chinese (`zh-Hans`)
+  - 日本語 / Japanese (`ja`)
+  - Deutsch / German (`de`)
+  - Español / Spanish (`es`)
+  - Français / French (`fr`)
+  - Türkçe / Turkish (`tr`)
+- **In-app language switcher**: Choose your preferred language directly from the settings gear menu, or let it match your macOS system language automatically.
+- **Refined minimal preview banner**: High-resolution Retina README preview with clean negative space and floating status cards.
+
+### Fixed
+- **Settings & submenu auto-dismiss on hover**: Paused background polling and CPU sampling while any `NSMenu` or submenu is tracking, and isolated SwiftUI observation so menus do not unexpectedly dismiss under the cursor.
+
 ## [0.2.0] - 2026-09-26
 
 ### Added

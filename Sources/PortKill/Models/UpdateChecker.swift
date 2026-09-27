@@ -73,7 +73,7 @@ public final class UpdateChecker {
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String, !version.isEmpty {
             return version
         }
-        return "0.2.0"
+        return "0.3.0"
     }
 
     private let repoURL = URL(string: "https://api.github.com/repos/fr3on/portkill/releases/latest")!
